@@ -2,7 +2,7 @@ package Test::Builder::Tester;
 
 use strict;
 use vars qw(@EXPORT $VERSION @ISA);
-$VERSION = 0.08;
+$VERSION = 0.09;
 
 use Test::Builder;
 use Symbol;
@@ -19,26 +19,27 @@ Test::Builder
     use Test::More;
 
     test_out("not ok 1 - foo");
-    test_err("#     Failed test ($0 at line ".line_num(+1).")");
+    test_err("# Failed test ($0 at line ".line_num(+1).")");
     fail("foo");
     test_test("fail works");
 
 =head1 DESCRIPTION
 
-A module that helps you test test modules that are built with
-Test::Builder.
+A module that helps you test testing modules that are built with
+B<Test::Builder>.
 
-Basically, the system works by performing a three step process for
-each test you wish to test.  This starts with using 'test_out' and
-'test_err' in advance to declare what the testsuite you are testing
-will output with Test::Builder to it's stdout and stderr.
+The testing system is designed to be used by performing a three step
+process for each test you wish to test.  This process starts with using
+C<test_out> and C<test_err> in advance to declare what the testsuite you
+are testing will output with B<Test::Builder> to stdout and stderr.
 
 You then can run the test(s) from your test suite that call
-Test::Builder.  The output of Test::Builder is captured by
-Test::Builder::Tester rather than going to its usual destination.
+B<Test::Builder>.  At this point the output of B<Test::Builder> is
+safely captured by B<Test::Builder::Tester> rather than being
+interpreted as real test output.
 
-The final stage is to call test_test that will simply compare what you
-predeclared to what Test::Builder actually outputted, and report the
+The final stage is to call C<test_test> that will simply compare what you
+predeclared to what B<Test::Builder> actually outputted, and report the
 results back with a "ok" or "not ok" (with debugging) to the normal
 output.
 
@@ -117,6 +118,8 @@ my $original_output_handle;
 my $original_failure_handle;
 my $original_todo_handle;
 
+my $original_test_number;
+
 # function that starts testing and redirects the filehandles for now
 sub _start_testing
 {
@@ -154,7 +157,7 @@ These are the six methods that are exported as default.
 =item test_err
 
 Procedures for predeclaring the output that your test suite is
-expected to produce until test_test is called.  These procedures
+expected to produce until C<test_test> is called.  These procedures
 automatically assume that each line terminates with "\n".  So
 
    test_out("ok 1","ok 2");
@@ -168,11 +171,12 @@ which is even the same as
    test_out("ok 1");
    test_out("ok 2");
 
-Once test_out, test_err, test_fail or test_diag have been called all
-output from Test::Builder will be captured by Test::Builder::Tester.
-This means that your will not be able perform further tests to the
-normal output in the normal way until you call test_test (well, unless
-you manually meddle with the output filehandles)
+Once C<test_out> or C<test_err> (or C<test_fail> or C<test_diag>) have
+been called once all further output from B<Test::Builder> will be
+captured by B<Test::Builder::Tester>.  This means that your will not
+be able perform further tests to the normal output in the normal way
+until you call C<test_test> (well, unless you manually meddle with the
+output filehandles)
 
 =cut
 
@@ -194,16 +198,16 @@ sub test_err(@)
 
 =item test_fail
 
-Because the standard failure message that Test::Builder produces
+Because the standard failure message that B<Test::Builder> produces
 whenever a test fails will be a common occurrence in your test error
-output, rather than forcing you to call test_err with the string
+output, rather than forcing you to call C<test_err> with the string
 all the time like so
 
-    test_err("#     Failed test ($0 at line ".line_num(+1).")");
+    test_err("# Failed test ($0 at line ".line_num(+1).")");
 
-test_fail exists as a convenience method that can be called instead.
-It takes one argument, the offset from the current line that the
-line that causes the fail is on.
+C<test_fail> exists as a convenience method that can be called
+instead.  It takes one argument, the offset from the current line that
+the line that causes the fail is on.
 
     test_fail(+1);
 
@@ -232,11 +236,14 @@ sub test_fail
 
 =item test_diag
 
-As most of your output to the error stream will be performed by
-Test::Builder's diag function which prepends comment hashes and
-spacing to the start of the output Test::Builder::Tester provides
-the test_diag function that auotmatically adds the output onto
-the front.  So instead of writing
+As most of the remaining expected output to the error stream will be
+created by Test::Builder's C<diag> function, B<Test::Builder::Tester>
+provides a convience function C<test_diag> that you can use instead of
+C<test_err>.
+
+The C<test_diag> function prepends comment hashes and spacing to the
+start and newlines to the end of the expected output passed to it and
+adds it to the list of expected error output.  So, instead of writing
 
    test_err("# Couldn't open file");
 
@@ -244,7 +251,7 @@ you can write
 
    test_diag("Couldn't open file");
 
-Remember that Test::Builder's diag function will not add newlines to
+Remember that B<Test::Builder>'s diag function will not add newlines to
 the end of output and test_diag will. So to check
 
    Test::Builder->new->diag("foo\n","bar\n");
@@ -270,14 +277,14 @@ sub test_diag
 =item test_test
 
 Actually performs the output check testing the tests, comparing the
-data (with 'eq') that we have captured from Test::Builder against that
-that was declared with test_out and test_err.
+data (with C<eq>) that we have captured from B<Test::Builder> against
+that that was declared with C<test_out> and C<test_err>.
 
 Optionally takes a name for the test as its only argument.
 
-Once test_test has been run test output will be redirected back to
-the original filehandles that Test::Builder was connected to (probably
-STDOUT and STDERR)
+Once C<test_test> has been run test output will be redirected back to
+the original filehandles that B<Test::Builder> was connected to
+(probably STDOUT and STDERR)
 
 =cut
 
@@ -318,8 +325,11 @@ sub test_test(;$)
 
 A utility function that returns the line number that the function was
 called on.  You can pass it an offset which will be added to the
-result.  This is very useful for working out what the correct
-diagnostic methods should contain when they mention line numbers.
+result.  This is very useful for working out the correct text of
+diagnostic methods that contain line numbers.
+
+Essentially this is the same as the C<__LINE__> macro, but the
+C<line_num(+3)> idiom is arguably nicer.
 
 =cut
 
@@ -331,33 +341,43 @@ sub line_num
 
 =back
 
-In addition there exists one function that is not exported.
+In addition to the six exported functions there there exists one
+function that can only be accessed with a fully qualified function
+call.
+
+=over 4
 
 =item color
 
-When test_test is called and the output that your tests generate does
-not match that which you declared, test_test will print out debug
-information showing the two conflicting versions.  As this output
-itself is debug information it can be confusing which part of the output
-is from test_test and which is from your original tests.
+When C<test_test> is called and the output that your tests generate
+does not match that which you declared, C<test_test> will print out
+debug information showing the two conflicting versions.  As this
+output itself is debug information it can be confusing which part of
+the output is from C<test_test> and which was the original output from
+your original tests.  Also, it may be hard to spot things like
+extraneous whitespace at the end of lines that may cause your test to
+fail even though the output looks similar.
 
-To assist you, if you have the Term::ANSIColor module installed
-(which you will do by default on perl 5.005 onwards), test_test can
-use colour to disambiguate the different types of output.  This
-will cause the output that was originally from the tests you are
-testing to be coloured green and red.  The green part represents the
-text which is the same between the executed and actual output, the
-red shows which part differs.
+To assist you, if you have the B<Term::ANSIColor> module installed
+(which you should do by default from perl 5.005 onwards), C<test_test>
+can colour the background of the debug information to disambiguate the
+different types of output. The debug output will have it's background
+coloured green and red.  The green part represents the text which is
+the same between the executed and actual output, the red shows which
+part differs.
 
-The color function determines if colouring should occur or not.
-Passing it a true or false value will enable and disable colouring
+The C<color> function determines if colouring should occur or not.
+Passing it a true or false value will enable or disable colouring
 respectively, and the function called with no argument will return the
 current setting.
 
 To enable colouring from the command line, you can use the
-Text::Builder::Tester::Color module like so:
+B<Text::Builder::Tester::Color> module like so:
 
    perl -Mlib=Text::Builder::Tester::Color test.t
+
+Or by including the B<Test::Builder::Tester::Color> module directly in
+the PERL5LIB.
 
 =cut
 
@@ -368,30 +388,41 @@ sub color
   $color;
 }
 
+=back
+
 =head1 BUGS
 
-Calls Test::Builder's no_ending method turning off the ending tests.
-This is needed as otherwise it will trip out because we've run more
-tests than we strictly should have and it'll register any failures we
-had that we were testing for as real failures.
+Calls B<Test::Builder>'s C<no_ending> method turning off the ending
+tests.  This is needed as otherwise it will trip out because we've run
+more tests than we strictly should have and it'll register any
+failures we had that we were testing for as real failures.
 
-The color function doesn't work unless Term::ANSIColor is installed
+The color function doesn't work unless B<Term::ANSIColor> is installed
 and is compatible with your terminal.
 
 Bugs (and requests for new features) can be reported to the author
 though the CPAN RT system:
-http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Builder-Tester
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Builder-Tester>
 
 =head1 AUTHOR
 
 Copyright Mark Fowler E<lt>mark@twoshortplanks.comE<gt> 2002.
 
-Some code taken from Test::More and Test::Catch, written by by Michael
-G Schwern E<lt>schwern@pobox.comE<gt>.  Hence, those parts Copyright
-Micheal G Schwern 2001.  Used and distributed with permission.
+Some code taken from B<Test::More> and B<Test::Catch>, written by by
+Michael G Schwern E<lt>schwern@pobox.comE<gt>.  Hence, those parts
+Copyright Micheal G Schwern 2001.  Used and distributed with
+permission.
 
 This program is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
+
+=head1 NOTES
+
+This code has been tested explicitly on the following versions
+of perl: 5.7.3, 5.6.1, 5.6.0, 5.005_03, 5.004_05 and 5.004.
+
+Thanks to Richard Clamp E<lt>richardc@unixbeard.netE<gt> for letting
+me use his testing system to try this module out on.
 
 =head1 SEE ALSO
 
@@ -437,9 +468,6 @@ sub complaint
     my $self = shift;
     my ($type, $got, $wanted) = @$self;
 
-    my $green = "";
-    my $reset = "";
-
     # are we running in colour mode?
     if (Test::Builder::Tester::color)
     {
@@ -447,21 +475,38 @@ sub complaint
       eval "require Term::ANSIColor";
       unless ($@)
       {
-	$green  = Term::ANSIColor::color("green");
-	$reset  = Term::ANSIColor::color("reset");
-        my $red = Term::ANSIColor::color("red");
+	# colours
+
+	my $green = Term::ANSIColor::color("black").
+	            Term::ANSIColor::color("on_green");
+        my $red   = Term::ANSIColor::color("black").
+                    Term::ANSIColor::color("on_red");
+	my $reset = Term::ANSIColor::color("reset");
 
 	# work out where the two strings start to differ
 	my $char = 0;
 	$char++ while substr($got, $char, 1) eq substr($wanted, $char, 1);
 
-	# now insert red colouring escape where the differences start
-	substr($got,    $char, 0, $red);
-	substr($wanted, $char, 0, $red);
+	# get the start string and the two end strings
+	my $start     = $green . substr($wanted, 0,   $char);
+	my $gotend    = $red   . substr($got   , $char) . $reset;
+	my $wantedend = $red   . substr($wanted, $char) . $reset;
+
+	# make the start turn green on and off
+	$start =~ s/\n/$reset\n$green/g;
+
+	# make the ends turn red on and off
+	$gotend    =~ s/\n/$reset\n$red/g;
+	$wantedend =~ s/\n/$reset\n$red/g;
+
+	# rebuild the strings
+	$got    = $start . $gotend;
+	$wanted = $start . $wantedend;
       }
     }
 
-    return "$type is:\n$green$got$reset\nnot:\n$green$wanted$reset\nas expected"
+    return "$type is:\n" .
+           "$got\nnot:\n$wanted\nas expected"
 }
 
 ##

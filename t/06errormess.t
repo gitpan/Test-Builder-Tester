@@ -135,15 +135,15 @@ start_testing();
 $out->expect("not ok 1 - bar");
 $err->expect("#     Failed test ($0 at line ".line_num(+24).")");
 $err->expect("# STDERR is:",
-             "# ${green}#     Failed test ($0 at line ".line_num(+19).")",
-             "# #          got: 'php'",
-             "# #     expected: '${red}Perl'",
-             "# ${reset}",
+             "# ${green}#     Failed test ($0 at line ".line_num(+19).")$reset",
+             "# ${green}#          got: 'php'$reset",
+             "# ${green}#     expected: '${red}Perl'$reset",
+             "# $reset",
              "# not:",
-             "# ${green}#     Failed test ($0 at line ".line_num(+19).")",
-             "# #          got: 'php'",
-             "# #     expected: '${red}perl'",
-             "# ${reset}",
+             "# ${green}#     Failed test ($0 at line ".line_num(+19).")$reset",
+             "# ${green}#          got: 'php'$reset",
+             "# ${green}#     expected: '${red}perl'$reset",
+             "# $reset",
              "# as expected");
 
 # set up what the inner wrapper expects (which it won't get);
@@ -168,9 +168,11 @@ my_test_test("meta test b&w");
 # load the module and get colours if we can
 eval "require Term::ANSIColor";
 unless ($@) {
-  $red   = Term::ANSIColor::color("red");
+  $red   = Term::ANSIColor::color("black") .
+           Term::ANSIColor::color("on_red");
   $reset = Term::ANSIColor::color("reset");
-  $green = Term::ANSIColor::color("green");
+  $green = Term::ANSIColor::color("black").
+           Term::ANSIColor::color("on_green");
 }
 
 # turn colour mode on
@@ -181,15 +183,15 @@ start_testing();
 $out->expect("not ok 1 - bar");
 $err->expect("#     Failed test ($0 at line ".line_num(+24).")");
 $err->expect("# STDERR is:",
-	     "# ${green}#     Failed test ($0 at line ".line_num(+19).")",
-	     "# #          got: 'php'",
-	     "# #     expected: '${red}Perl'",
-	     "# ${reset}",
+             "# ${green}#     Failed test ($0 at line ".line_num(+19).")$reset",
+             "# ${green}#          got: 'php'$reset",
+             "# ${green}#     expected: '${red}Perl'$reset",
+             "# ${red}$reset",
              "# not:",
-	     "# ${green}#     Failed test ($0 at line ".line_num(+19).")",
-	     "# #          got: 'php'",
-	     "# #     expected: '${red}perl'",
-	     "# ${reset}",
+             "# ${green}#     Failed test ($0 at line ".line_num(+19).")$reset",
+             "# ${green}#          got: 'php'$reset",
+             "# ${green}#     expected: '${red}perl'$reset",
+             "# ${red}$reset",
              "# as expected");
 
 # set up what the inner wrapper expects (which it won't get);
