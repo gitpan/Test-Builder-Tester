@@ -2,7 +2,7 @@ package Test::Builder::Tester;
 
 use strict;
 use vars qw(@EXPORT $VERSION @ISA);
-$VERSION = 0.07;
+$VERSION = 0.08;
 
 use Test::Builder;
 use Symbol;
@@ -238,7 +238,7 @@ spacing to the start of the output Test::Builder::Tester provides
 the test_diag function that auotmatically adds the output onto
 the front.  So instead of writing
 
-   test_err("#     Couldn't open file");
+   test_err("# Couldn't open file");
 
 you can write
 
@@ -264,7 +264,7 @@ sub test_diag
 
     # expect the same thing, but prepended with "#     "
     local $_;
-    $err->expect(map {"#     $_"} @_)
+    $err->expect(map {"# $_"} @_)
 }
 
 =item test_test
@@ -378,6 +378,10 @@ had that we were testing for as real failures.
 The color function doesn't work unless Term::ANSIColor is installed
 and is compatible with your terminal.
 
+Bugs (and requests for new features) can be reported to the author
+though the CPAN RT system:
+http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Builder-Tester
+
 =head1 AUTHOR
 
 Copyright Mark Fowler E<lt>mark@twoshortplanks.comE<gt> 2002.
@@ -457,7 +461,7 @@ sub complaint
       }
     }
 
-    return "$type is '$green$got$reset' not '$green$wanted$reset' as expected"
+    return "$type is:\n$green$got$reset\nnot:\n$green$wanted$reset\nas expected"
 }
 
 ##
