@@ -1,0 +1,30 @@
+--- #YAML:1.0
+name: Test-Builder-Tester
+version: 1.00
+author:
+  - |-
+    Copyright Mark Fowler E<lt>mark@twoshortplanks.comE<gt> 2002, 2004.
+  - |-
+    Some code taken from B<Test::More> and B<Test::Catch>, written by by
+    Michael G Schwern E<lt>schwern@pobox.comE<gt>.  Hence, those parts
+    Copyright Micheal G Schwern 2001.  Used and distributed with
+    permission.
+  - |-
+    This program is free software; you can redistribute it
+    and/or modify it under the same terms as Perl itself.
+abstract: |-
+  test testsuites that have been built with
+  Test::Builder
+license: perl
+requires:
+  Test::Builder: 0.12
+provides:
+  Test::Builder::Tester:
+    file: lib/Test/Builder/Tester.pm
+    version: 1.00
+  Test::Builder::Tester::Color:
+    file: lib/Test/Builder/Tester/Color.pm
+  Test::Tester::Tie:
+    file: lib/Test/Builder/Tester.pm
+    version: 1.00
+generated_by: Module::Build version 0.25

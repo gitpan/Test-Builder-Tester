@@ -2,7 +2,7 @@ package Test::Builder::Tester;
 
 use strict;
 use vars qw(@EXPORT $VERSION @ISA);
-$VERSION = 0.09;
+$VERSION = "1.00";
 
 use Test::Builder;
 use Symbol;
@@ -280,17 +280,53 @@ Actually performs the output check testing the tests, comparing the
 data (with C<eq>) that we have captured from B<Test::Builder> against
 that that was declared with C<test_out> and C<test_err>.
 
-Optionally takes a name for the test as its only argument.
+This takes name/value pairs that effect how the test is run.
+
+=over
+
+=item title (synonym 'name', 'label')
+
+The name of the test that will be displayed after the C<ok> or C<not
+ok>.
+
+=item skip_out
+
+Setting this to a true value will cause the test to ignore if the
+output sent by the test to the output stream does not match that
+declared with C<test_out>.
+
+=item skip_err
+
+Setting this to a true value will cause the test to ignore if the
+output sent by the test to the error stream does not match that
+declared with C<test_err>.
+
+=back
+
+As a convience, if only one argument is passed then this argument
+is assumed to be the name of the test (as in the above examples.)
 
 Once C<test_test> has been run test output will be redirected back to
 the original filehandles that B<Test::Builder> was connected to
-(probably STDOUT and STDERR)
+(probably STDOUT and STDERR,) meaning any further tests you run
+will function normally and cause success/errors for B<Test::Harness>.
 
 =cut
 
-sub test_test(;$)
+sub test_test
 {
-    my $mess = shift;
+   # decode the arguements as described in the pod
+   my $mess;
+   my %args;
+   if (@_ == 1)
+     { $mess = shift }
+   else
+   {
+     %args = @_;
+     $mess = $args{name} if exists($args{name});
+     $mess = $args{title} if exists($args{title});
+     $mess = $args{label} if exists($args{label});
+   }
 
     # er, are we testing?
     croak "Not testing.  You must declare output with a test function first."
@@ -306,7 +342,9 @@ sub test_test(;$)
     $testing = 0;
 
     # check the output we've stashed
-    unless ($t->ok(($out->check && $err->check), $mess))
+    unless ($t->ok(    ($args{skip_out} || $out->check)
+                    && ($args{skip_err} || $err->check),
+                   $mess))
     {
       # print out the diagnostic information about why this
       # test failed
@@ -314,10 +352,10 @@ sub test_test(;$)
       local $_;
 
       $t->diag(map {"$_\n"} $out->complaint)
-	unless $out->check;
+	unless $args{skip_out} || $out->check;
 
       $t->diag(map {"$_\n"} $err->complaint)
-	unless $err->check;
+	unless $args{skip_err} || $err->check;
     }
 }
 
@@ -406,7 +444,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Builder-Tester>
 
 =head1 AUTHOR
 
-Copyright Mark Fowler E<lt>mark@twoshortplanks.comE<gt> 2002.
+Copyright Mark Fowler E<lt>mark@twoshortplanks.comE<gt> 2002, 2004.
 
 Some code taken from B<Test::More> and B<Test::Catch>, written by by
 Michael G Schwern E<lt>schwern@pobox.comE<gt>.  Hence, those parts

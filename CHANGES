@@ -1,3 +1,17 @@
+1.00
+
+ - prepped for release after testing at Fotango
+
+ - Added additional test name argument 'label'
+
+0.99_01
+
+ - Convert to Module::Build
+
+ - Add ability to ignore test_err, test_out
+
+ - Added test name arguments 'name' and 'title' 
+
 0.09
 
  - Make the code work on 5.004 (now works on all known perls greater
