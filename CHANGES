@@ -1,3 +1,9 @@
+1.01
+
+ - Schwern's prototype of Test::Builder adds an extra newline
+   when running under Test::Harness.  We now fake not running under
+   Test::Harness during the testing (we twiddle the ENV variable)
+
 1.00
 
  - prepped for release after testing at Fotango

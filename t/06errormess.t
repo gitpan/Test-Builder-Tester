@@ -28,6 +28,7 @@ my $t = Test::Builder->new;
 my $original_output_handle;
 my $original_failure_handle;
 my $original_todo_handle;
+my $original_harness_env;
 my $testing_num;
 
 sub start_testing
@@ -36,11 +37,14 @@ sub start_testing
     $original_output_handle  = $t->output();
     $original_failure_handle = $t->failure_output();
     $original_todo_handle    = $t->todo_output();
+    $original_harness_env    = $ENV{HARNESS_ACTIVE};
 
     # switch out to our own handles
     $t->output($output_handle);
     $t->failure_output($error_handle);
     $t->todo_output($error_handle);
+
+    $ENV{HARNESS_ACTIVE} = 0;
 
     # clear the expected list
     $out->reset();
@@ -64,6 +68,7 @@ sub my_test_test
   $t->output($original_output_handle);
   $t->failure_output($original_failure_handle);
   $t->todo_output($original_todo_handle);
+  $ENV{HARNESS_ACTIVE} = $original_harness_env;
 
   # reset the number of tests
   $t->current_test($testing_num);

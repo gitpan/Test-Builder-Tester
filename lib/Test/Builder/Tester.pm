@@ -2,7 +2,7 @@ package Test::Builder::Tester;
 
 use strict;
 use vars qw(@EXPORT $VERSION @ISA);
-$VERSION = "1.00";
+$VERSION = "1.01";
 
 use Test::Builder;
 use Symbol;
@@ -119,10 +119,18 @@ my $original_failure_handle;
 my $original_todo_handle;
 
 my $original_test_number;
+my $original_harness_state;
+
+my $original_harness_env;
 
 # function that starts testing and redirects the filehandles for now
 sub _start_testing
 {
+    # even if we're running under Test::Harness pretend we're not
+    # for now.  This needed so Test::Builder doesn't add extra spaces
+    $original_harness_env = $ENV{HARNESS_ACTIVE};
+    $ENV{HARNESS_ACTIVE} = 0;
+
     # remember what the handles were set to
     $original_output_handle  = $t->output();
     $original_failure_handle = $t->failure_output();
@@ -340,6 +348,9 @@ sub test_test
     # restore the test no, etc, back to the original point
     $t->current_test($testing_num);
     $testing = 0;
+
+    # re-enable the original setting of the harness
+    $ENV{HARNESS_ACTIVE} = $original_harness_env;
 
     # check the output we've stashed
     unless ($t->ok(    ($args{skip_out} || $out->check)
