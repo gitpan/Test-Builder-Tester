@@ -1,0 +1,8 @@
+MANIFEST
+Makefile.PL
+lib/Test/Builder/Tester.pm
+t/01basic.t
+t/02fhrestore.t
+t/03die.t
+t/04line_num.t
+t/05faildiag.t
